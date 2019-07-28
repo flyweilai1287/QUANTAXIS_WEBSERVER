@@ -16,7 +16,7 @@ NAME = "quantaxis_webserver"
 """
 名字，一般放你包的名字即可
 """
-PACKAGES = ["QAWebServer"]
+PACKAGES = ["QAWebServer","QAWebServer.config"]
 """
 包含的包，可以多个，这是一个列表
 """
@@ -32,7 +32,7 @@ LICENSE = "MIT"
 
 setup(
     name=NAME,
-    version='1.6.1',
+    version='1.6.1.1',
     description=DESCRIPTION,
     long_description='quantaxis webserver',
     classifiers=[
