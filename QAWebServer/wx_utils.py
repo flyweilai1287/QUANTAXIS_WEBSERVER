@@ -22,8 +22,7 @@ log=logging.getLogger(__name__)
 base_url='https://api.weixin.qq.com/cgi-bin/'
 wx_token=Setting().get('wx_token') or ''
 wx_count=0
-tousers=['ov_NB5lvMOAHNNkGoycKLh7vtBmc']
-# tousers=['ov_NB5lvMOAHNNkGoycKLh7vtBmc']
+tousers=[Setting().get('tousers') or '']
 lock = threading.Lock()
 
 def wx_send_message(resource,message):
