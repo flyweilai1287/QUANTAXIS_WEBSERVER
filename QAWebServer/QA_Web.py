@@ -54,10 +54,12 @@ from QAWebServer.userhandles import (
 )
 
 from QAWebServer.jobhandler import JOBHandler, FileRunHandler
-from tornado_http2.server import Server
+# from tornado_http2.server import Server
 from QUANTAXIS.QAUtil.QASetting import QASETTING
 from QUANTAXIS import __version__
 from terminado import TermSocket, SingleTermManager
+
+from QAWebServer.wxhandles import WxSendHandler
 
 
 class INDEX(QABaseHandler):
@@ -131,8 +133,8 @@ handlers = [
      JOBHandler),
     (r"/command/filemapper",
      FileRunHandler),
-    (r"/file",
-    FileHandler)
+    (r"/file",FileHandler),
+    (r"/wx_send",WxSendHandler)
 ]
 
 
@@ -171,8 +173,8 @@ def main():
     #     QASETTING.set_config('WEBSERVICE', 'port', default_value=options.port)
 
     # print(options.content)
-    #http_server = tornado.httpserver.HTTPServer(apps)
-    http_server = Server(apps)
+    http_server = tornado.httpserver.HTTPServer(apps)
+    # http_server = Server(apps)
     print('========WELCOME QUANTAXIS_WEBSERVER============')
     print('QUANTAXIS VERSION: {}'.format(__version__))
     print('QUANTAXIS WEBSERVER is Listening on: http://localhost:{}'.format(port))
