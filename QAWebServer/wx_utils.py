@@ -58,7 +58,7 @@ def wx_update_token():
             return
         else:
             log.info('准备更新token')
-            url='https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxe47537194aa251d5&secret=33ece539be3b7b789df618c1d542aab9' #测试号的url，不会变
+            url=Setting().get('wx_update_url') #测试号的url，不会变
             response = requests.post(url=url)
             res=response.json()
             if res.get('access_token'):
