@@ -51,9 +51,10 @@ def wx_send_message(resource,message):
 
     pass
 def wx_update_token():
-    global wx_token,wx_count
+    global wx_token,wx_time
     with lock:
-        if wx_count>0:
+        current_time=time.time()
+        if current_time-wx_time<20:
             return
         else:
             log.info('准备更新token')
@@ -68,7 +69,7 @@ def wx_update_token():
                 log.info('已更新token：%s' % wx_token)
                 print('已更新token：%s' % wx_token)
 
-                wx_count=1
+                wx_time=time.time()
             else:
                 log.critical('微信获取token出错!!! %s',res)
 
