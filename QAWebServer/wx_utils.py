@@ -21,11 +21,14 @@ from QAWebServer.config.setting import Setting
 log=logging.getLogger(__name__)
 base_url='https://api.weixin.qq.com/cgi-bin/'
 wx_token=Setting().get('wx_token') or ''
-wx_count=0
+wx_time=0
 tousers=[Setting().get('tousers') or '']
 lock = threading.Lock()
 
-def wx_send_message(resource,message):
+try_wxsend_max=10 #尝试发送的最多次数，如果超过该数量就不再发送
+
+
+def wx_send_message(resource, message, try_wxsend_count=0):
     if True:
         log.info('准备微信发送（生产模式）：%s %s', resource, message)
         headers = {
@@ -37,12 +40,16 @@ def wx_send_message(resource,message):
         res = requests.post(url=url, json=message, headers=headers).json()
         # resp: {"errcode": 42001, "errmsg": "access_token expired hint: [vjp0438vr29!]"}
         if res.get('errcode') and res.get('errcode') in (42001,41001,40001):
-            print('微信返回信息:',res)
+            log.info('微信返回信息:',res)
+            try_wxsend_count = try_wxsend_count + 1
+            if try_wxsend_count>try_wxsend_max:
+                log.info("尝试发送次数以超过"+try_wxsend_max+"，停止发送")
+                return
             wx_update_token()
-            wx_send_message(resource,message)
+            wx_send_message(resource,message,try_wxsend_count)
             # return
         else:
-            print('微信返回信息：',res)
+            log.info('微信返回信息：',res)
         # db_str={strategy_type:strategy_type,message_type:message_type,'timestamp':time.time(),'resource':resource,'message':message,'response':res}
         # log.info('微信发送内容：%s',db_str)
         # mongo_db.save(db_str, DB['t_wx_message'])
