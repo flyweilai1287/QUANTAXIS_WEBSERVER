@@ -29,6 +29,7 @@ try_wxsend_max=10 #尝试发送的最多次数，如果超过该数量就不再�
 
 
 def wx_send_message(resource, message, try_wxsend_count=0):
+    result=None
     if True:
         log.info('准备微信发送（生产模式）：%s %s', resource, message)
         headers = {
@@ -38,6 +39,7 @@ def wx_send_message(resource, message, try_wxsend_count=0):
         if not isinstance(message,dict):
             message=json.loads(message)
         res = requests.post(url=url, json=message, headers=headers).json()
+        result=res
         # resp: {"errcode": 42001, "errmsg": "access_token expired hint: [vjp0438vr29!]"}
         if res.get('errcode') and res.get('errcode') in (42001,41001,40001):
             log.info('微信返回信息:',res)
@@ -46,7 +48,7 @@ def wx_send_message(resource, message, try_wxsend_count=0):
                 log.info("尝试发送次数以超过"+try_wxsend_max+"，停止发送")
                 return
             wx_update_token()
-            wx_send_message(resource,message,try_wxsend_count)
+            result=wx_send_message(resource,message,try_wxsend_count)
             # return
         else:
             log.info('微信返回信息：',res)
@@ -56,7 +58,8 @@ def wx_send_message(resource, message, try_wxsend_count=0):
     else:
         log.info('微信发送（非生产模式）：%s %s %s %s',resource,message,strategy_type,message_type)
 
-    pass
+    return result
+
 def wx_update_token():
     global wx_token,wx_time
     with lock:
