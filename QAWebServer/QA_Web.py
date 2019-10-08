@@ -37,8 +37,8 @@ from QAWebServer.datahandles import (
     StockdayHandler,
     StockminHandler,
     StockPriceHandler,
-    DataFetcher
-)
+    DataFetcher,
+    StockRealtimeHandler)
 from QAWebServer.quotationhandles import (
     MonitorSocketHandler,
     RealtimeSocketHandler,
@@ -87,6 +87,8 @@ handlers = [
      StockdayHandler),
     (r"/marketdata/stock/min",
      StockminHandler),
+    (r"/marketdata/stock/realtime",
+     StockRealtimeHandler),
     (r"/marketdata/fetcher",
      DataFetcher),
     (r"/marketdata/stock/block",

@@ -28,6 +28,7 @@ import time
 
 import pymongo
 import tornado
+from QUANTAXIS import QA_fetch_get_stock_realtime
 from tornado import gen
 from tornado.concurrent import Future
 from tornado.web import Application, RequestHandler, authenticated
@@ -156,6 +157,28 @@ class StockminHandler(QABaseHandler):
             self.write({'result': data})
 
         self.write({'result': data})
+
+
+class StockRealtimeHandler(QABaseHandler):
+    """stock_min
+
+    Arguments:
+        QABaseHandler {[type]} -- [description]
+    """
+
+    def get(self):
+        """
+        采用了get_arguents来获取参数
+        默认参数: code-->000001 start-->2017-01-01 09:00:00 end-->now
+
+        """
+        code = self.get_argument('code', default='000001')
+
+        data = QA_util_to_json_from_pandas(
+            QA_fetch_get_stock_realtime('tdx',code))
+
+        self.write({'result': data})
+
 
 
 class StockBlockHandler(QABaseHandler):
