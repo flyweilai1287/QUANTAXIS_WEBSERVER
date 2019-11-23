@@ -3,40 +3,46 @@ import json
 import os
 import shlex
 import subprocess
+import threading
 
 import tornado
 from tornado.web import Application, RequestHandler, authenticated
 from tornado.websocket import WebSocketHandler
 
 from QAWebServer.basehandles import QABaseHandler, QAWebSocketHandler
-from QUANTAXIS.QAUtil.QADict import QA_util_dict_remove_key
-import threading
 from QUANTAXIS.QAUtil import QA_util_log_info
+from QUANTAXIS.QAUtil.QADict import QA_util_dict_remove_key
 
 
 def background_task(command):
     #command = self.get_argument('command')
     cmd = shlex.split(command)
     p = subprocess.Popen(
-        cmd, shell=False,  stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    return p
+        cmd, shell=False, close_fds=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    while p.poll() is None:
+        line = p.stdout.readline()
+        # QA.QA_util_log_info(line)
+    raise Exception
 
 
 class CommandHandler(QABaseHandler):
     x = {}
 
     def post(self):
+        print('get message')
         try:
             command = self.get_argument('command')
+            # print(command)
+            #command = 'bash -c "{}"'.format(command)
             print(command)
-            # threading.Thread(target=background_task, args=(
-            #     command,), daemon=True).start()
 
-            if command not in self.x.keys():
-                self.x[command] = background_task(command)
-            else:
-                self.x[command].kill()
-                self.x[command] = background_task(command)
+            threading.Thread(target=background_task, args=(
+                command,), daemon=True).start()
+            # if command not in self.x.keys():
+            #     self.x[command] = background_task(command)
+            # else:
+            #     self.x[command].kill()
+            #     self.x[command] = background_task(command)
             # print(res.read())
             self.write({'result': 'true'})
         except Exception as e:

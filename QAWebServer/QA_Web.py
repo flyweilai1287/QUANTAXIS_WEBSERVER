@@ -21,43 +21,40 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import asyncio
 import os
 import sys
+
 import tornado
-import asyncio
+#from terminado import SingleTermManager, TermSocket
+from tornado.options import (define, options, parse_command_line,
+                             parse_config_file)
 from tornado.web import Application, RequestHandler, authenticated
-from tornado.options import define, parse_command_line, parse_config_file, options
-from QAWebServer.arphandles import (AccountHandler, RiskHandler, PortfolioHandler)
+# from tornado_http2.server import Server
+
+from QAWebServer.arphandles import (AccountHandler, PortfolioHandler,
+                                    RiskHandler)
 from QAWebServer.basehandles import QABaseHandler
-from QAWebServer.commandhandler import CommandHandler, RunnerHandler, CommandHandlerWS
-from QAWebServer.filehandler import FileHandler
-from QAWebServer.datahandles import (
-    StockBlockHandler,
-    StockCodeHandler,
-    StockdayHandler,
-    StockminHandler,
-    StockPriceHandler,
-    DataFetcher,
+from QAWebServer.commandhandler import (CommandHandler, CommandHandlerWS,
+                                        RunnerHandler)
+from QAWebServer.datahandles import (DataFetcher, StockBlockHandler, CurrentListHandler,
+                                     StockCodeHandler, StockdayHandler,
+                                     StockminHandler, StockPriceHandler,
+                                     FutureCodeHandler,
     StockRealtimeHandler)
-from QAWebServer.quotationhandles import (
-    MonitorSocketHandler,
-    RealtimeSocketHandler,
-    SimulateSocketHandler
-)
+from QAWebServer.filehandler import FileHandler
+# from tornado_http2.server import Server
+from QAWebServer.jobhandler import FileRunHandler, JOBHandler
+from QAWebServer.quotationhandles import (MonitorSocketHandler,
+                                          RealtimeSocketHandler,
+                                          SimulateSocketHandler,
+                                          future_realtime, stock_realtime)
 from QAWebServer.strategyhandlers import BacktestHandler, StrategyHandler
 from QAWebServer.tradehandles import AccModelHandler, TradeInfoHandler
-from QAWebServer.userhandles import (
-    PersonBlockHandler,
-    SigninHandler,
-    SignupHandler,
-    UserHandler
-)
-
-from QAWebServer.jobhandler import JOBHandler, FileRunHandler
-# from tornado_http2.server import Server
-from QUANTAXIS.QAUtil.QASetting import QASETTING
+from QAWebServer.userhandles import (PersonBlockHandler, SigninHandler,
+                                     SignupHandler, UserHandler)
 from QUANTAXIS import __version__
-from terminado import TermSocket, SingleTermManager
+from QUANTAXIS.QAUtil.QASetting import QASETTING
 
 from QAWebServer.wxhandles import WxSendHandler
 
@@ -76,13 +73,14 @@ class INDEX(QABaseHandler):
         )
 
 
-term_manager = SingleTermManager(shell_command=['bash'])
+#term_manager = SingleTermManager(shell_command=['bash'])
 handlers = [
     (r"/",
      INDEX),
-    # (r"/websocket", TermSocket, {'term_manager': term_manager}),
-    # (r"/()", tornado.web.StaticFileHandler, {'path':'index.html'}),
-    # (r"/(.*)", tornado.web.StaticFileHandler, {'path':'.'}),
+    (r"/codelist",
+     CurrentListHandler),
+    (r"/marketdata/future/code",
+     FutureCodeHandler),
     (r"/marketdata/stock/day",
      StockdayHandler),
     (r"/marketdata/stock/min",
@@ -119,6 +117,10 @@ handlers = [
      TradeInfoHandler),
     (r"/realtime",
      RealtimeSocketHandler),
+    (r"/realtime/stock",
+     stock_realtime),
+    (r"/realtime/future",
+     future_realtime),
     (r"/simulate",
      SimulateSocketHandler),
     (r"/monitor",
@@ -146,8 +148,15 @@ def main():
 
     define("address", default='0.0.0.0', type=str, help='服务器地址')
     define("content", default=[], type=str, multiple=True, help="控制台输出内容")
-    
+
     parse_command_line()
+    port = options.port
+    address = options.address
+
+    start_server(handlers, address, port)
+
+
+def start_server(handlers, address, port):
     apps = Application(
         handlers=handlers,
         debug=True,
@@ -177,11 +186,12 @@ def main():
     # print(options.content)
     http_server = tornado.httpserver.HTTPServer(apps)
     # http_server = Server(apps)
+    # http_server = Server(apps)
     print('========WELCOME QUANTAXIS_WEBSERVER============')
     print('QUANTAXIS VERSION: {}'.format(__version__))
     print('QUANTAXIS WEBSERVER is Listening on: http://localhost:{}'.format(port))
     print('请打开浏览器/使用JavaScript等来使用该后台, 并且不要关闭当前命令行窗口')
-    http_server.bind(port=options.port, address=options.address)
+    http_server.bind(port=port, address=address)
     """增加了对于非windows下的机器多进程的支持
     """
     http_server.start(1)

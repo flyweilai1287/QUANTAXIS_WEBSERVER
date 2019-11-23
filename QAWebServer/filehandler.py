@@ -1,9 +1,10 @@
-from QAWebServer.basehandles import QABaseHandler
-import uuid
-from QUANTAXIS.QASetting.QALocalize import cache_path
 import os
-from QUANTAXIS.QAUtil.QASetting import DATABASE
+import uuid
+
+from QAWebServer.basehandles import QABaseHandler
+from QUANTAXIS.QASetting.QALocalize import cache_path
 from QUANTAXIS.QAUtil.QAParameter import RUNNING_STATUS
+from QUANTAXIS.QAUtil.QASetting import DATABASE
 
 
 class FileHandler(QABaseHandler):
@@ -22,13 +23,14 @@ class FileHandler(QABaseHandler):
             'content': content,
             'title': title
         }
-        
+
         print(res)
         self.write({
             'result': res,
             'status': RUNNING_STATUS.SUCCESS
         })
         DATABASE.filename.insert_one(res)
+
     def get(self):
         filename = self.get_argument('filename', None)
         if filename is None:
@@ -57,7 +59,7 @@ class FileHandler(QABaseHandler):
                     'res': {}
                 })
         else:
-            with open('{}{}{}.py'.format(cache_path, os.sep, filename), 'r', encoding='utf-8') as f:
+            with open('{}{}_{}.py'.format(cache_path, os.sep, filename), 'r', encoding='utf-8') as f:
                 r = f.read()
 
             self.write({
